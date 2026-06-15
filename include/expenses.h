@@ -14,20 +14,20 @@
 #include <sstream>
 using namespace std;
 
-struct Expenses {
+struct Expense {
     string date, category, detail;
     double amount{};
 };
 
-using ExpensesList = vector<Expenses>;
+using ExpenseList = vector<Expense>;
 
 template <typename T>
-concept ExpenseExporter = requires(T exporter, const ExpensesList& expenses)
+concept ExpenseExporter = requires(T exporter, const ExpenseList& expenses)
 {
     {exporter.export_expenses(expenses)}->same_as<string>;
 };
 
-using ExportFunction = function<string(const ExpensesList&)>;
+using ExportFunction = function<string(const ExpenseList&)>;
 
 template <typename M, typename Cmp>
 concept SortStrategy =
@@ -39,7 +39,7 @@ void sort_with(auto& vals, auto cmp)
 }
 
 struct CsvExporter {
-    string export_expenses(const ExpensesList& expenses) const {
+    string export_expenses(const ExpenseList& expenses) const {
         ostringstream oss;
         oss << "date, category, detail" << endl;
         for (const auto& e : expenses) {
@@ -53,7 +53,7 @@ struct CsvExporter {
 };
 
 struct JsonExporter {
-    string export_expenses(const ExpensesList& expenses) const {
+    string export_expenses(const ExpenseList& expenses) const {
         ostringstream oss;
         oss << "[\n";
         for (int i = 0; i < expenses.size(); ++i) {
@@ -71,7 +71,7 @@ struct JsonExporter {
 };
 
 struct TextExporter {
-    string export_expenses(const ExpensesList& expenses) const {
+    string export_expenses(const ExpenseList& expenses) const {
         ostringstream oss;
         for (const auto& e : expenses) {
             oss << e.date << " - " << e.category << " - " << e.detail << " : " << e.amount << endl;
@@ -82,15 +82,15 @@ struct TextExporter {
 
 template <ExpenseExporter E, typename... Args>
 ExportFunction make_exporter(Args&&... args) {
-    return [exporter = E(forward<Args>(args)...)](const ExpensesList& expenses) {
+    return [exporter = E(forward<Args>(args)...)](const ExpenseList& expenses) {
         return exporter.export_expenses(expenses);
     };
 }
 
 template<ExpenseExporter I>
 struct AuditedExporter {
-    I inner_;
-    string export_expenses(const ExpensesList& expenses) const {
+    I inner;
+    string export_expenses(const ExpenseList& expenses) const {
         string resultado = inner.export_expenses(expenses);
         resultado += "\nSe han exportado " + to_string(expenses.size()) + " gastos de forma segura\n";
         return resultado;
@@ -100,7 +100,7 @@ struct AuditedExporter {
 template <ExpenseExporter I>
 struct SummaryExporter {
     I inner;
-    string export_expenses(const ExpensesList& expenses) const {
+    string export_expenses(const ExpenseList& expenses) const {
         string resultado = inner.export_expenses(expenses);
         double total_amount = 0.0;
         for (const auto& e : expenses) {
