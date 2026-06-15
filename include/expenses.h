@@ -41,7 +41,7 @@ void sort_with(auto& vals, auto cmp)
 struct CsvExporter {
     string export_expenses(const ExpenseList& expenses) const {
         ostringstream oss;
-        oss << "date, category, detail" << endl;
+        oss << "date, category, detail, amount" << endl;
         for (const auto& e : expenses) {
             oss << e.date << ", "
                 << e.category << ", "
@@ -92,7 +92,7 @@ struct AuditedExporter {
     I inner;
     string export_expenses(const ExpenseList& expenses) const {
         string resultado = inner.export_expenses(expenses);
-        resultado += "\nSe han exportado " + to_string(expenses.size()) + " gastos de forma segura\n";
+        resultado += "\n[audit: Se han exportado " + to_string(expenses.size()) + " gastos de forma segura]\n";
         return resultado;
     }
 };
@@ -107,7 +107,7 @@ struct SummaryExporter {
             total_amount += e.amount;
         }
 
-        resultado += "\n===== Total: " + to_string(total_amount) + "=====\n";
+        resultado += "\n===== total: " + to_string(total_amount) + " =====\n";
         return resultado;
     }
 };
